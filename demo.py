@@ -62,26 +62,22 @@ st.markdown("""
     .stMetric:hover {
         transform: translateY(-5px);
     }
+
     .stPlotlyChart {
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        /*contain: strict; <-- Removed to fix hover rendering bug */
+        /* REMOVE: contain: strict; */
     }
+
     .network-container {
-        /* contain: strict; */
-        /* isolation: isolate; */
-        padding: 10px;
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        /* REMOVE: contain: strict; isolation: isolate; */
+        overflow: hidden;
     }
+
     .main > div {
-        /* contain: content; <-- Removed for safe dynamic rendering */
+        /* REMOVE: contain: content; */
     }
-    .dataframe {
-        width: 100%;
-    }
-</style>
+</style>    
 """, unsafe_allow_html=True)
 
 # ====================
@@ -434,6 +430,7 @@ def interactive_network_tab(filtered_org):
         
         if len(G.nodes()) > 100:
             st.warning(f"Showing {len(G.nodes())} nodes. Consider increasing the minimum projects filter.")
+            G = G.subgraph(list(G.nodes())[:100])
         
         # Create PyVis network
         net = Network(
@@ -464,13 +461,11 @@ def interactive_network_tab(filtered_org):
             html = open(tmpfile.name).read()
         
         isolated_html = f"""
-        <iframe srcdoc='{html.replace("'", "&apos;")}' 
-                width="100%" 
-                height="700px"
-                frameBorder="0"
-                style="border:none;"
-                onload="this.style.visibility='visible'">
-        </iframe>
+        with open(tmpfile.name, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+
+        st.components.v1.html(html_content, height=700, scrolling=True)
+
         """
         st.components.v1.html(isolated_html, height=700)
         st.markdown('</div>', unsafe_allow_html=True)
