@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Horizon Europe Dashboard PRO"""
+"""Horizon Europe Dashboard PRO - Fixed Version"""
 
 # ====================
 # CONFIGURATION (MUST BE AT TOP)
@@ -39,7 +39,7 @@ import gc
 warnings.filterwarnings('ignore')
 
 # ====================
-# ENHANCED CSS WITH CONTAINMENT
+# FIXED CSS
 # ====================
 st.markdown("""
 <style>
@@ -62,22 +62,14 @@ st.markdown("""
     .stMetric:hover {
         transform: translateY(-5px);
     }
-
     .stPlotlyChart {
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        /* REMOVE: contain: strict; */
     }
-
     .network-container {
-        /* REMOVE: contain: strict; isolation: isolate; */
         overflow: hidden;
     }
-
-    .main > div {
-        /* REMOVE: contain: content; */
-    }
-</style>    
+</style>
 """, unsafe_allow_html=True)
 
 # ====================
@@ -424,15 +416,13 @@ def interactive_network_tab(filtered_org):
         )
     
     with col2:
-        st.markdown('<div class="network-container">', unsafe_allow_html=True)
-        
         G = create_network_graph(filtered_org, min_projects)
         
         if len(G.nodes()) > 100:
             st.warning(f"Showing {len(G.nodes())} nodes. Consider increasing the minimum projects filter.")
             G = G.subgraph(list(G.nodes())[:100])
         
-        # Create PyVis network
+        # Create PyVis network with proper iframe handling
         net = Network(
             height="700px",
             width="100%",
@@ -455,21 +445,18 @@ def interactive_network_tab(filtered_org):
         for edge in G.edges(data=True):
             net.add_edge(edge[0], edge[1], value=edge[2]['weight'])
         
-        # Generate HTML with iframe isolation
-        with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmpfile:
-            net.save_graph(tmpfile.name)
-            html = open(tmpfile.name).read()
+        # Generate HTML directly without tempfile
+        html = net.generate_html()
+        html = html.replace("'", '"')  # Fix quote escaping
         
-        isolated_html = f"""
-        with open(tmpfile.name, 'r', encoding='utf-8') as f:
-            html_content = f.read()
-
-        st.components.v1.html(html_content, height=700, scrolling=True)
-
-        """
-        st.components.v1.html(isolated_html, height=700)
-        st.markdown('</div>', unsafe_allow_html=True)
-        
+        # Render with proper iframe settings
+        st.components.v1.html(
+            html,
+            height=700,
+            scrolling=True,
+            width=None,
+            key=f"network_{min_projects}"
+        )
         # Clean up memory
         gc.collect()
 
