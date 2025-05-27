@@ -65,14 +65,6 @@ st.markdown("""
     .stPlotlyChart {
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        
-    }
-    .network-container {
-        
-        
-    }
-    .main > div {
-        
     }
     .dataframe {
         width: 100%;
@@ -149,15 +141,16 @@ def create_network_graph(org_df, min_projects=3):
             edge_counter[(u, v)] += 1
     
     G = nx.Graph()
-if len(G.nodes()) > 100:
-    st.warning(f"Showing only 100 of {len(G.nodes())} nodes for performance.")
-    G = G.subgraph(list(G.nodes())[:100])
     G.add_edges_from((u, v, {'weight': w}) for (u, v), w in edge_counter.items())
     
     # Filter nodes
     degrees = dict(G.degree())
     filtered_nodes = [n for n, d in degrees.items() if d >= min_projects]
     G = G.subgraph(filtered_nodes)
+    
+    if len(G.nodes()) > 100:
+        st.warning(f"Showing only 100 of {len(G.nodes())} nodes for performance.")
+        G = G.subgraph(list(G.nodes())[:100])
     
     return G
 
@@ -296,21 +289,19 @@ def predictive_analytics_tab(filtered_proj):
         fig = funding_forecast(forecast_data, forecast_years)
         if fig:
             try:
-    st.plotly_chart(fig, use_container_width=True)
-except Exception as e:
-    st.error(f'Plot rendering failed: {e}')
-    st.write(fig.to_dict())
+                st.plotly_chart(fig, use_container_width=True)
+            except Exception as e:
+                st.error(f'Plot rendering failed: {e}')
         else:
             st.warning("Not enough data for forecasting")
     
     with tab2:
         st.subheader("Project Count Forecast")
-        fig = project_count_forecast(forecast_data, forecast_years)
         try:
-    st.plotly_chart(fig, use_container_width=True)
-except Exception as e:
-    st.error(f'Plot rendering failed: {e}')
-    st.write(fig.to_dict())
+            fig = project_count_forecast(forecast_data, forecast_years)
+            st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            st.error(f'Plot rendering failed: {e}')
     
     # Scenario modeling
     with st.expander("🧪 Scenario Modeling", expanded=False):
@@ -503,21 +494,22 @@ def topic_analysis_tab(filtered_proj):
             labels={'ecMaxContribution': 'Total Funding (€)'}
         )
         try:
-    st.plotly_chart(fig, use_container_width=True)
-except Exception as e:
-    st.error(f'Plot rendering failed: {e}')
-    st.write(fig.to_dict())
+            st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            st.error(f'Plot rendering failed: {e}')
+            st.write(fig.to_dict())
     
     with tab2:
         st.subheader("Topic Collaboration Network")
         topic_org = filtered_proj.groupby(['topic_label', 'id'])['ecMaxContribution'].sum().reset_index()
         G = nx.Graph()
-if len(G.nodes()) > 100:
-    st.warning(f"Showing only 100 of {len(G.nodes())} nodes for performance.")
-    G = G.subgraph(list(G.nodes())[:100])
         
         for _, row in topic_org.iterrows():
             G.add_edge(row['topic_label'], row['id'], weight=row['ecMaxContribution'])
+        
+        if len(G.nodes()) > 100:
+            st.warning(f"Showing only 100 of {len(G.nodes())} nodes for performance.")
+            G = G.subgraph(list(G.nodes())[:100])
         
         # Visualization
         pos = nx.spring_layout(G)
@@ -556,10 +548,10 @@ if len(G.nodes()) > 100:
         )
         
         try:
-    st.plotly_chart(fig, use_container_width=True)
-except Exception as e:
-    st.error(f'Plot rendering failed: {e}')
-    st.write(fig.to_dict())
+            st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            st.error(f'Plot rendering failed: {e}')
+            st.write(fig.to_dict())
     
     with tab3:
         st.subheader("Topic Word Clouds")
@@ -641,30 +633,28 @@ def main():
             # Filter out rows with missing values for treemap
             filtered_treemap_data = filtered_proj.dropna(subset=['Country Name', 'topic_label'])
             try:
-    st.plotly_chart(px.treemap(
-                filtered_treemap_data,
-                path=['Country Name', 'topic_label'],
-                values='ecMaxContribution',
-                title="Funding Distribution",
-                color='ecMaxContribution',
-                color_continuous_scale='Blues'
-            )
-except Exception as e:
-    st.error(f'Plot rendering failed: {e}')
-    st.write(fig.to_dict()), use_container_width=True)
+                st.plotly_chart(px.treemap(
+                    filtered_treemap_data,
+                    path=['Country Name', 'topic_label'],
+                    values='ecMaxContribution',
+                    title="Funding Distribution",
+                    color='ecMaxContribution',
+                    color_continuous_scale='Blues'
+                ), use_container_width=True)
+            except Exception as e:
+                st.error(f'Plot rendering failed: {e}')
         
         with col2:
             try:
-    st.plotly_chart(px.bar(
-                filtered_proj.groupby('topic_label')
-except Exception as e:
-    st.error(f'Plot rendering failed: {e}')
-    st.write(fig.to_dict())['ecMaxContribution'].sum().reset_index().sort_values('ecMaxContribution', ascending=False).head(10),
-                x='topic_label',
-                y='ecMaxContribution',
-                title="Top 10 Funded Research Areas",
-                labels={'ecMaxContribution': 'Total Funding (€)'}
-            ), use_container_width=True)
+                st.plotly_chart(px.bar(
+                    filtered_proj.groupby('topic_label')['ecMaxContribution'].sum().reset_index().sort_values('ecMaxContribution', ascending=False).head(10),
+                    x='topic_label',
+                    y='ecMaxContribution',
+                    title="Top 10 Funded Research Areas",
+                    labels={'ecMaxContribution': 'Total Funding (€)'}
+                ), use_container_width=True)
+            except Exception as e:
+                st.error(f'Plot rendering failed: {e}')
     
     elif selection == "🌐 Collaborations":
         interactive_network_tab(filtered_org)
