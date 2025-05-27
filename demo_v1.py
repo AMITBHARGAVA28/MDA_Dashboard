@@ -150,7 +150,7 @@ def create_network_graph(org_df, min_projects=3):
     
     G = nx.Graph()
 if len(G.nodes()) > 100:
-    st.warning(f\"Showing only 100 of {len(G.nodes())} nodes for performance.\")
+    st.warning(f"Showing only 100 of {len(G.nodes())} nodes for performance.")
     G = G.subgraph(list(G.nodes())[:100])
     G.add_edges_from((u, v, {'weight': w}) for (u, v), w in edge_counter.items())
     
@@ -513,7 +513,7 @@ except Exception as e:
         topic_org = filtered_proj.groupby(['topic_label', 'id'])['ecMaxContribution'].sum().reset_index()
         G = nx.Graph()
 if len(G.nodes()) > 100:
-    st.warning(f\"Showing only 100 of {len(G.nodes())} nodes for performance.\")
+    st.warning(f"Showing only 100 of {len(G.nodes())} nodes for performance.")
     G = G.subgraph(list(G.nodes())[:100])
         
         for _, row in topic_org.iterrows():
