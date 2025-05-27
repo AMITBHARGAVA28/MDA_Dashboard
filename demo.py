@@ -65,14 +65,18 @@ st.markdown("""
     .stPlotlyChart {
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        contain: strict;
+        /*contain: strict; <-- Removed to fix hover rendering bug */
     }
     .network-container {
-        contain: strict;
-        isolation: isolate;
+        /* contain: strict; */
+        /* isolation: isolate; */
+        padding: 10px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .main > div {
-        contain: content;
+        /* contain: content; <-- Removed for safe dynamic rendering */
     }
     .dataframe {
         width: 100%;
